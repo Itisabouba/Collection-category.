@@ -1,0 +1,271 @@
+{{ 'category-grid.css' | asset_url | stylesheet_tag }}
+
+{%- style -%}
+  #shopify-section-{{ section.id }} .category-grid {
+    --cg-section-bg: {{ section.settings.section_bg_color }};
+    --cg-section-padding-top: {{ section.settings.padding_top }}px;
+    --cg-section-padding-bottom: {{ section.settings.padding_bottom }}px;
+    --cg-heading-color: {{ section.settings.heading_color }};
+    --cg-line-color: {{ section.settings.heading_color }};
+    --cg-text-color: {{ section.settings.overlay_text_color }};
+    --cg-overlay-opacity: {{ section.settings.overlay_opacity | times: 1.0 | divided_by: 100.0 }};
+    --cg-overlay-opacity-hover: {{ section.settings.overlay_opacity_hover | times: 1.0 | divided_by: 100.0 }};
+    --cg-radius: {{ section.settings.corner_radius }}px;
+  }
+{%- endstyle -%}
+
+<section
+  class="category-grid"
+  data-section-id="{{ section.id }}"
+  data-section-type="category-grid"
+  aria-label="{{ section.settings.heading | strip_html | escape }}"
+>
+  {%- if section.settings.heading != blank -%}
+    <div class="category-grid__heading-wrap">
+      <h2 class="category-grid__heading">{{ section.settings.heading | escape }}</h2>
+      {%- if section.settings.show_rule -%}
+        <div class="category-grid__rule" role="presentation"></div>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+
+  <div
+    class="category-grid__grid"
+    data-layout="{{ section.settings.desktop_layout }}"
+    data-mobile-layout="{{ section.settings.mobile_layout }}"
+  >
+    {%- for block in section.blocks -%}
+      {%- liquid
+        assign img = block.settings.image
+        assign label = block.settings.label
+        assign link = block.settings.link
+        assign cta_text = block.settings.cta_text
+      -%}
+
+      
+        href="{{ link | default: '#' }}"
+        class="category-grid__item"
+        {{ block.shopify_attributes }}
+        {% if link == blank %}aria-disabled="true" tabindex="-1"{% endif %}
+      >
+        <span class="category-grid__media">
+          {%- if img -%}
+            <img
+              class="category-grid__img"
+              src="{{ img | image_url: width: 100 }}"
+              srcset="
+                {{ img | image_url: width: 375 }} 375w,
+                {{ img | image_url: width: 600 }} 600w,
+                {{ img | image_url: width: 900 }} 900w,
+                {{ img | image_url: width: 1200 }} 1200w,
+                {{ img | image_url: width: 1600 }} 1600w
+              "
+              sizes="(max-width: 749px) 50vw, 25vw"
+              alt="{{ img.alt | default: label | escape }}"
+              width="{{ img.width }}"
+              height="{{ img.height }}"
+              loading="{% if forloop.index <= 2 %}eager{% else %}lazy{% endif %}"
+              {% if forloop.index == 1 %}fetchpriority="high"{% endif %}
+            >
+          {%- else -%}
+            {{ 'lifestyle-2' | placeholder_svg_tag: 'category-grid__img placeholder-svg' }}
+          {%- endif -%}
+          <span class="category-grid__overlay" aria-hidden="true"></span>
+        </span>
+
+        <span class="category-grid__content">
+          {%- if label != blank -%}
+            <span class="category-grid__label">{{ label | escape }}</span>
+          {%- endif -%}
+          {%- if cta_text != blank -%}
+            <span class="category-grid__cta">{{ cta_text | escape }}</span>
+          {%- endif -%}
+        </span>
+      </a>
+    {%- else -%}
+      {%- comment -%} Editor placeholder state when no blocks added yet {%- endcomment -%}
+      {%- for i in (1..4) -%}
+        <div class="category-grid__item">
+          <span class="category-grid__media">
+            {{ 'lifestyle-2' | placeholder_svg_tag: 'category-grid__img placeholder-svg' }}
+            <span class="category-grid__overlay" aria-hidden="true"></span>
+          </span>
+          <span class="category-grid__content">
+            <span class="category-grid__label">Category {{ i }}</span>
+            <span class="category-grid__cta">Shop Now</span>
+          </span>
+        </div>
+      {%- endfor -%}
+    {%- endfor -%}
+  </div>
+</section>
+
+<script src="{{ 'category-grid.js' | asset_url }}" defer="defer"></script>
+
+{% schema %}
+{
+  "name": "Category Grid",
+  "tag": "section",
+  "class": "shopify-section--category-grid",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading text",
+      "default": "Collection Category"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rule",
+      "label": "Show underline below heading",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading & underline color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "desktop_layout",
+      "label": "Desktop layout",
+      "options": [
+        { "value": "two-by-two", "label": "2 x 2 grid" },
+        { "value": "four-across", "label": "4 across (single row)" }
+      ],
+      "default": "two-by-two"
+    },
+    {
+      "type": "select",
+      "id": "mobile_layout",
+      "label": "Mobile layout",
+      "options": [
+        { "value": "grid", "label": "2 x 2 grid" },
+        { "value": "stack", "label": "Stacked (1 column)" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "label": "Image corner radius",
+      "min": 0,
+      "max": 24,
+      "step": 2,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "header",
+      "content": "Overlay & Text"
+    },
+    {
+      "type": "color",
+      "id": "overlay_text_color",
+      "label": "Text color over image",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay darkness (default)",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity_hover",
+      "label": "Overlay darkness (on hover)",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 30
+    },
+    {
+      "type": "header",
+      "content": "Section Spacing"
+    },
+    {
+      "type": "color",
+      "id": "section_bg_color",
+      "label": "Section background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Top padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 64
+    }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Category Tile",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Category name",
+          "default": "Dresses"
+        },
+        {
+          "type": "text",
+          "id": "cta_text",
+          "label": "CTA text",
+          "default": "Shop Now"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link (collection or page)"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 4,
+  "presets": [
+    {
+      "name": "Category Grid",
+      "blocks": [
+        { "type": "category", "settings": { "label": "Dresses", "cta_text": "Shop Now" } },
+        { "type": "category", "settings": { "label": "Tops", "cta_text": "Shop Now" } },
+        { "type": "category", "settings": { "label": "Skirts", "cta_text": "Shop Now" } },
+        { "type": "category", "settings": { "label": "Sets", "cta_text": "Shop Now" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
